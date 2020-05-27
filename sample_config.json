@@ -1,0 +1,13 @@
+{
+    "fb": {
+        "email": "",
+        "password": "",
+        "group_url": "https://www.facebook.com/groups/SomeGroupHere/requests/"
+    },
+    "valid_email_regex": "^[a-z0-9]{1,20}\\.[a-z0-9]{1,20}_(ug|asp)[0-9]{2}@ashoka.edu.in$",
+    "email_subject": "Join FB Group",
+    "datafile": "./data/emails_joined.csv",
+    "client_secret": "./data/client_secret.json",
+    "access_token": "./data/access_token.pickle",
+    "encryption_key": "superSecureEncryptionKey"
+}
