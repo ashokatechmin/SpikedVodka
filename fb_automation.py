@@ -6,31 +6,37 @@ Uses Selenium to access Facebook, open the url of a group & accept/reject reques
 """
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from sys import platform
 import json
 import time
 
-# set chrome executable path for linux & macOS
-if platform == "darwin":
-    chrome_executable_path = "/usr/local/bin/chromedriver"
-elif platform == "linux":
-    chrome_executable_path = "/usr/bin/chromedriver"
-
 def create_browser ():
-    """ Create a chrome browser instance & return it """
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--ignore-certificate-errors')
-    chrome_options.add_argument("--test-type")
-    chrome_options.add_argument("headless") # comment this line for GUI
+    """ Create a browser instance & return it """
+    
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument("--test-type")
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    #options.add_argument('--window-size=1420,1080')
+    options.add_argument('--headless') # comment this line for GUI
+    options.add_argument('--disable-gpu') # comment this line for GUI
     prefs = {"profile.default_content_setting_values.notifications": 2}
-    chrome_options.add_experimental_option("prefs", prefs)
-
-    return webdriver.Chrome(executable_path=chrome_executable_path, options=chrome_options)
+    
+    options.add_experimental_option("prefs", prefs)
+    return webdriver.Chrome(options=options)
+        
 
 def fb_login (browser: webdriver.Chrome, config: dict):
     """ Login to Facebook; config["email"] & config["password"] must be set """
-    time.sleep(1)
     browser.get(config['group_url'])
+
+    element_present = EC.presence_of_element_located((By.ID, 'loginbutton'))
+    WebDriverWait(browser, 5).until(element_present)
+
     # finding login input areas
     mail_element= browser.find_element_by_id('email')
     pwd_element = browser.find_element_by_id('pass')
@@ -51,7 +57,9 @@ def is_fb_logged_in (browser: webdriver.Chrome):
 def view_requests (browser: webdriver.Chrome, config: dict):
     """ Returns the pending requests; ignores requests that have pending answers; config["group_url"] must be set """
     browser.get(config["group_url"]) # load the group url in the browser
-    time.sleep (1)
+    element_present = EC.presence_of_element_located((By.ID, 'member_requests_pagelet'))
+    WebDriverWait(browser, 5).until(element_present)
+    #time.sleep (1)
     
     requests = list ()
    
@@ -69,7 +77,7 @@ def view_requests (browser: webdriver.Chrome, config: dict):
             ques = element.find_element_by_xpath (".//div[contains(text(), 'technology.ministry@')]") # the relevant question; TODO: put into config.json
             ans = ques.find_element_by_xpath ("./following-sibling::text").get_attribute("innerHTML") # answer to the question; innerHTML returns the text
         except: # ignore this request if this answer is not present, as it might still be loading
-            continue 
+            ans = None 
         # compile all this info
         obj = {
             "name": name_element.get_attribute("innerHTML"), 
@@ -106,9 +114,12 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
         ActionChains(browser).move_to_element(req["anchor"]).perform() # make approve button visible
         time.sleep (2) # sleep for a few seconds before any action
         
-        if validate (name, req["answer"]): # if validation succeeded, accept
+        validated = validate (name, req["answer"])
+        if validated == True: # if validation succeeded, accept
             print (f"[FB] approving user: {name}")
             req["approve"].click ()
-        else: # decline otherwise
+        elif validated == False: # decline otherwise
             print (f"[FB] rejecting user: {name}")
             req["decline"].click ()
+        else: # ignore
+            pass 

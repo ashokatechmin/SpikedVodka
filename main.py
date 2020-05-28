@@ -21,19 +21,25 @@ def close_browser (signum, frame):
     exit (0)
 
 config_file = argv[-1] # argument to know where the configuration file is
+
 config = load_json (config_file) # load the config (credentials and all)
 verifier = Verifier (config) # fetches emails, generates codes & validates requests
+print (f"registered emails: {len(verifier.data)}")
 
 browser = create_browser () # create an instance of a browser
 signal.signal (signal.SIGINT, close_browser) # close on keyboard interrupt (ctrl + c)
 
 # loop forever & accept requests
 while True:
-    print ("responding to FB requests...")
-    handle_requests (browser, config["fb"], lambda name, answer : verifier.validate(name, answer))
 
     print ("fetching emails...")
     verifier.fetch ()
+
+    print ("responding to FB requests...")
+    handle_requests (browser, config["fb"], lambda name, answer : verifier.validate(name, answer))
+
     time.sleep (1*60 + 30) # wait a few minutes before restarting the cycle
+
+    
     
 

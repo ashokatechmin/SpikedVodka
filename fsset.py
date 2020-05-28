@@ -29,6 +29,8 @@ class FSSet:
         self.set.clear ()
         if path.isfile (self.filename):
             remove (self.filename)
+    def __len__(self):
+        return len(self.set)
     def __contains__ (self, item: str):
         return item in self.set
 
@@ -40,7 +42,7 @@ def test_fsset ():
     fsset = FSSet ("test_file.csv")
     
     fsset.clear ()
-    assert len (fsset.set) == 0 # verify clear works
+    assert len (fsset) == 0 # verify clear works
 
     for line in lines:
         fsset.add (line) # add all the lines
@@ -48,7 +50,7 @@ def test_fsset ():
         assert line in fsset # verify they got added
 
     fsset2 = FSSet ("test_file.csv") # open another set with the same file
-    assert len (fsset.set) == len(fsset2.set)
+    assert len (fsset) == len(fsset2)
     for line in lines:
         assert line in fsset2 # verify that lines loaded correctly
 

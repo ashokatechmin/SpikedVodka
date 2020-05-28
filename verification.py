@@ -85,7 +85,9 @@ class Verifier:
 
     def validate (self, name: str, answer: str):
         """ Verify if the answer is a valid code """
-        
+        if not answer:
+            return
+            
         code = answer.replace ("\n", "").replace (" ", "") # remove whitespace
         try:
             code = decrypt (code, self.encryption_key) # decrypt the code
