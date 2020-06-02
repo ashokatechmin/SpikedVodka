@@ -59,8 +59,8 @@ class Verifier:
                 print (email + ' requested to join, sending code')
                 
                 code = encrypt (email, self.encryption_key)
-                txt += f"Here is your code (please copy and paste the entire code below):\n\n{code}\n\n"
-                txt += "Please enter it at the join prompt on Facebook."
+                txt += f"Here is your code:\n\n{code}\n\n"
+                txt += "Please copy and paste the entire code at the join prompt on Facebook."
             
             txt += "\n\nWarm Regards,\nMesscat"
 
@@ -71,17 +71,6 @@ class Verifier:
     def is_valid_email (self, email):
         """ Check if the email is valid"""
         return self.email_regex.match (email) != None
-
-    def test_email_verification (self):
-        """ Small unit test to verify the email regex works for Ashoka """
-        assert self.is_valid_email ("adhiraj.singh_ug21@ashoka.edu.in")
-        assert self.is_valid_email ("adhiraj.singh_asp20@ashoka.edu.in")
-        assert self.is_valid_email ("adhiraj.a123_asp42@ashoka.edu.in")
-        assert not self.is_valid_email ("adhiraj.singh_yif21@ashoka.edu.in")
-        assert not self.is_valid_email ("adhirajsingh@gmail.com")
-        assert not self.is_valid_email ("ahbkahdadkqdkj")
-        assert self.is_valid_email ("adhiraj1.singh123_ug24@ashoka.edu.in")
-        assert not self.is_valid_email ("adhiraj1.singh123_phd24@ashoka.edu.in")
 
     def validate (self, name: str, answer: str):
         """ Verify if the answer is a valid code """
@@ -104,3 +93,21 @@ class Verifier:
         except:
             print (f"{name} decryption failed for {answer}") # if decryption failed, then just fail
             return False
+
+def test_email_verification (email_regex):
+    """ Small unit test to verify the email regex works for Ashoka """
+    def is_valid_email (email):
+        return email_regex.match (email) != None
+    assert is_valid_email ("adhiraj.singh_ug21@ashoka.edu.in")
+    assert is_valid_email ("adhiraj.singh_asp20@ashoka.edu.in")
+    assert is_valid_email ("adhiraj.a123_asp42@ashoka.edu.in")
+    assert not is_valid_email ("adhiraj.singh_yif21@ashoka.edu.in")
+    assert not is_valid_email ("adhirajsingh@gmail.com")
+    assert not is_valid_email ("ahbkahdadkqdkj")
+    assert is_valid_email ("adhiraj1.singh123_ug24@ashoka.edu.in")
+    assert not is_valid_email ("adhiraj1.singh123_phd24@ashoka.edu.in")
+    assert is_valid_email ("adhiraj1.singh123@alumni.ashoka.edu.in")
+    assert is_valid_email ("shruthisagar@alumni.ashoka.edu.in")
+    assert not is_valid_email ("adhiraj1.singh123@alumni2.ashoka.edu.in")
+if __name__ == "__main__":
+    test_email_verification (re.compile("""([a-z0-9]{1,20}\.[a-z0-9]{1,20}_(ug|asp)[0-9]{2}@ashoka.edu.in)|([a-z0-9\.]{1,50}@alumni.ashoka.edu.in)"""))
