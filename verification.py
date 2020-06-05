@@ -6,15 +6,23 @@
 import json
 import time
 import re
+import csv
 from fsset import FSSet
 from aes import encrypt, decrypt
 from gmail_utils import get_gmail_service, gmail_fetch, extract_relevant, extract_name_email, send_reply, read_email
+
+
+def read_column_of_csv (file, column):
+    with open (file) as csv_file:
+        reader = csv.DictReader (csv_file)
+        rows = [ row[column] for row in reader ]
+        return rows
+    return []
 
 '''
     To ensure that one person can use their email only once to validate a code, we store their emails in a set. 
     Then, we check if the set contains the email trying to validate, if it does validation fails
 '''
-
 class Verifier:
     """ 
         Class that can fetch emails, verify the sender, generate validation codes & validate requests.    
@@ -25,6 +33,11 @@ class Verifier:
         self.encryption_key = config["encryption_key"] # key used to sign the codes
         self.subject_q = config["email_subject"].lower () # the subject that the emails should have
         self.email_regex = re.compile(config["valid_email_regex"]) # regex to validate an email address
+
+        if "valid_email_list" in config:
+            opts = config["valid_email_list"]
+            self.valid_emails_list = set( read_column_of_csv(opts["file"], opts["column"]) )
+            print (f"read {len(self.valid_emails_list)} valid emails in list")
         self.last_fetch = None # when was the last fetch
 
         self.service = get_gmail_service (config["client_secret"], config["access_token"]) # gmail service
@@ -70,7 +83,8 @@ class Verifier:
             send_reply (self.service, txt, message) # reply
     def is_valid_email (self, email):
         """ Check if the email is valid"""
-        return self.email_regex.match (email) != None
+        
+        return self.email_regex.match (email.lower()) != None or (email.lower() in self.valid_emails_list)
 
     def validate (self, name: str, answer: str):
         """ Verify if the answer is a valid code """
@@ -94,10 +108,10 @@ class Verifier:
             print (f"{name} decryption failed for {answer}") # if decryption failed, then just fail
             return False
 
-def test_email_verification (email_regex):
+def test_email_verification (verifier):
     """ Small unit test to verify the email regex works for Ashoka """
     def is_valid_email (email):
-        return email_regex.match (email) != None
+        return verifier.is_valid_email (email)
     assert is_valid_email ("adhiraj.singh_ug21@ashoka.edu.in")
     assert is_valid_email ("adhiraj.singh_asp20@ashoka.edu.in")
     assert is_valid_email ("adhiraj.a123_asp42@ashoka.edu.in")
@@ -106,8 +120,12 @@ def test_email_verification (email_regex):
     assert not is_valid_email ("ahbkahdadkqdkj")
     assert is_valid_email ("adhiraj1.singh123_ug24@ashoka.edu.in")
     assert not is_valid_email ("adhiraj1.singh123_phd24@ashoka.edu.in")
-    assert is_valid_email ("adhiraj1.singh123@alumni.ashoka.edu.in")
     assert is_valid_email ("shruthisagar@alumni.ashoka.edu.in")
+    assert is_valid_email ("aaditya.shetty@alumni.ashoka.edu.in")
     assert not is_valid_email ("adhiraj1.singh123@alumni2.ashoka.edu.in")
 if __name__ == "__main__":
-    test_email_verification (re.compile("""([a-z0-9]{1,20}\.[a-z0-9]{1,20}_(ug|asp)[0-9]{2}@ashoka.edu.in)|([a-z0-9\.]{1,50}@alumni.ashoka.edu.in)"""))
+    with open ("./config/config.json", "r") as f:
+        data = f.read ()
+        config = json.loads (data)
+        verifier = Verifier(config)
+        test_email_verification (verifier)
