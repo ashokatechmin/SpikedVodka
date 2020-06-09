@@ -20,7 +20,6 @@ RUN pip install selenium
 RUN pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
 ADD *.py /
-ADD config/*.json /config/
-ADD config/*.pickle /config/
+ADD config/* /config/
 
 CMD [ "python", "-u", "./main.py", "./config/config.json" ]

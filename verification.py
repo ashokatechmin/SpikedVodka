@@ -36,7 +36,8 @@ class Verifier:
 
         if "valid_email_list" in config:
             opts = config["valid_email_list"]
-            self.valid_emails_list = set( read_column_of_csv(opts["file"], opts["column"]) )
+            valids = read_column_of_csv(opts["file"], opts["column"])
+            self.valid_emails_list = set( filter (lambda x: len(x) > 0, valids) )
             print (f"read {len(self.valid_emails_list)} valid emails in list")
         self.last_fetch = None # when was the last fetch
 
