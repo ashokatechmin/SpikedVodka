@@ -24,9 +24,9 @@ config_file = argv[-1] # argument to know where the configuration file is
 
 config = load_json (config_file) # load the config (credentials and all)
 verifier = Verifier (config) # fetches emails, generates codes & validates requests
-print (f"registered emails: {len(verifier.data)}")
+print (f"registered emails: {len(verifier.data)}, accepted emails: {len(verifier.data)}")
 
-browser = create_browser () # create an instance of a browser
+browser = create_browser (argv[-2] == "gui") # create an instance of a browser
 signal.signal (signal.SIGINT, close_browser) # close on keyboard interrupt (ctrl + c)
 
 # loop forever & accept requests

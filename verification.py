@@ -95,20 +95,18 @@ class Verifier:
         code = answer.replace ("\n", "").replace (" ", "") # remove whitespace
         try:
             code = decrypt (code, self.encryption_key) # decrypt the code
-            if not self.is_valid_email (code): # if the code is not a valid email, fail
-                print (f"{name} email validation failed for {code}") 
-                return False
-            if code in self.data: # if the code has already been used for validation, fail
-                print (f"{name} sent duplicate code: {code}") 
-                return False
-
-            self.data.add (code) # add this to our set of validated emails
-            print (f"{name} successful authentication: {code}")
-            return True # validation success
-        except:
-            print (f"{name} decryption failed for {answer}") # if decryption failed, then just fail
+        except Exception as err:
+            print (f"{name} decryption failed for '{code}': {err}") # if decryption failed, then just fail
             return False
-
+        if not self.is_valid_email (code): # if the code is not a valid email, fail
+            print (f"{name} email validation failed for '{code}'") 
+            return False
+        if code in self.data: # if the code has already been used for validation, fail
+            print (f"{name} sent duplicate code: '{code}'") 
+            return False
+        self.data.add (code) # add this to our set of validated emails
+        print (f"{name} successful authentication: '{code}'")
+        return True
 def test_email_verification (verifier):
     """ Small unit test to verify the email regex works for Ashoka """
     def is_valid_email (email):
@@ -121,6 +119,8 @@ def test_email_verification (verifier):
     assert not is_valid_email ("ahbkahdadkqdkj")
     assert is_valid_email ("adhiraj1.singh123_ug24@ashoka.edu.in")
     assert not is_valid_email ("adhiraj1.singh123_phd24@ashoka.edu.in")
+    assert not is_valid_email ("adhiraj1.singh123_phd24_ug21@ashoka.edu.in")
+    assert is_valid_email ("somename_ug20@ashoka.edu.in")
     assert is_valid_email ("shruthisagar@alumni.ashoka.edu.in")
     assert is_valid_email ("aaditya.shetty@alumni.ashoka.edu.in")
     assert not is_valid_email ("adhiraj1.singh123@alumni2.ashoka.edu.in")
@@ -130,3 +130,4 @@ if __name__ == "__main__":
         config = json.loads (data)
         verifier = Verifier(config)
         test_email_verification (verifier)
+        

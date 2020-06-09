@@ -22,4 +22,6 @@ RUN pip install --upgrade google-api-python-client google-auth-httplib2 google-a
 ADD *.py /
 ADD config/* /config/
 
+RUN mkdir /data
+
 CMD [ "python", "-u", "./main.py", "./config/config.json" ]

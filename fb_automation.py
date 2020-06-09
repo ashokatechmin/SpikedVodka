@@ -13,7 +13,7 @@ from sys import platform
 import json
 import time
 
-def create_browser ():
+def create_browser (gui: bool=False):
     """ Create a browser instance & return it """
     
     options = webdriver.ChromeOptions()
@@ -21,9 +21,9 @@ def create_browser ():
     options.add_argument("--test-type")
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    #options.add_argument('--window-size=1420,1080')
-    options.add_argument('--headless') # comment this line for GUI
-    options.add_argument('--disable-gpu') # comment this line for GUI
+    if not gui:
+        options.add_argument('--headless') # comment this line for GUI
+        options.add_argument('--disable-gpu') # comment this line for GUI
     prefs = {"profile.default_content_setting_values.notifications": 2}
     
     options.add_experimental_option("prefs", prefs)
@@ -59,7 +59,7 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     browser.get(config["group_url"]) # load the group url in the browser
     element_present = EC.presence_of_element_located((By.ID, 'member_requests_pagelet'))
     WebDriverWait(browser, 5).until(element_present)
-    #time.sleep (1)
+    time.sleep (1)
     
     requests = list ()
    
@@ -72,11 +72,10 @@ def view_requests (browser: webdriver.Chrome, config: dict):
         approve_button = element.find_element_by_name ("approve") # the approve button
         decline_button = element.find_element_by_name ("decline") # the decline button
         anchor = element.find_element_by_xpath (".//div[contains(@class, '_50f8')]") # element, when scrolled to makes the entire request visible
-
         try:
             ques = element.find_element_by_xpath (".//div[contains(text(), 'technology.ministry@')]") # the relevant question; TODO: put into config.json
             ans = ques.find_element_by_xpath ("./following-sibling::text").get_attribute("innerHTML") # answer to the question; innerHTML returns the text
-        except: # ignore this request if this answer is not present, as it might still be loading
+        except Exception as err: # ignore this request if this answer is not present, as it might still be loading
             ans = None 
         # compile all this info
         obj = {
@@ -122,4 +121,4 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
             print (f"[FB] rejecting user: {name}")
             req["decline"].click ()
         else: # ignore
-            pass 
+            pass
