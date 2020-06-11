@@ -1,0 +1,9 @@
+{
+    "display_name": "Spiked Vodka",
+    "content": "A tool to automate the joining of FB groups",
+    "sample": {
+        "type": "code",
+        "language": "javascript",
+        "name": "sample.js"
+    }
+}
