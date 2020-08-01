@@ -54,6 +54,22 @@ def is_fb_logged_in (browser: webdriver.Chrome):
         return True
     except:
         return False
+def scroll_to_bottom (browser: webdriver.Chrome):
+    SCROLL_PAUSE_TIME = 0.5
+    # Get scroll height
+    last_height = browser.execute_script("return document.body.scrollHeight")
+    while True:
+        # Scroll down to bottom
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        # Wait to load page
+        time.sleep(SCROLL_PAUSE_TIME)
+
+        # Calculate new scroll height and compare with last scroll height
+        new_height = browser.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            break
+        last_height = new_height
 def view_requests (browser: webdriver.Chrome, config: dict):
     """ Returns the pending requests; ignores requests that have pending answers; config["group_url"] must be set """
     browser.get(config["group_url"]) # load the group url in the browser
@@ -61,6 +77,8 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     WebDriverWait(browser, 5).until(element_present)
     time.sleep (1)
     
+    scroll_to_bottom (browser) # ensure we get to all requests
+
     requests = list ()
    
     reqs_parent = browser.find_element_by_id('member_requests_pagelet') # find the requests container
@@ -111,7 +129,7 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
         name = req["name"]
         
         ActionChains(browser).move_to_element(req["anchor"]).perform() # make approve button visible
-        time.sleep (2) # sleep for a few seconds before any action
+        time.sleep (1) # sleep for a few seconds before any action
         
         validated = validate (name, req["answer"])
         if validated == True: # if validation succeeded, accept
