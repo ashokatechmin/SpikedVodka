@@ -31,12 +31,14 @@ signal.signal (signal.SIGINT, close_browser) # close on keyboard interrupt (ctrl
 
 # loop forever & accept requests
 while True:
+    try:
+        print ("fetching emails...")
+        verifier.fetch ()
 
-    print ("fetching emails...")
-    verifier.fetch ()
-
-    print ("responding to FB requests...")
-    handle_requests (browser, config["fb"], lambda name, answer : verifier.validate(name, answer))
+        print ("responding to FB requests...")
+        handle_requests (browser, config["fb"], lambda name, answer : verifier.validate(name, answer))
+    except Exception as error:
+        print (f"exception in cycle: {error}")
 
     time.sleep (1*60 + 30) # wait a few minutes before restarting the cycle
 
