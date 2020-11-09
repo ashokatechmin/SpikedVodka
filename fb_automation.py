@@ -32,7 +32,7 @@ def create_browser (gui: bool=False):
 
 def fb_login (browser: webdriver.Chrome, config: dict):
     """ Login to Facebook; config["email"] & config["password"] must be set """
-    browser.get(config['group_url'])
+    browser.get('https://www.facebook.com/login')
 
     element_present = EC.presence_of_element_located((By.ID, 'loginbutton'))
     WebDriverWait(browser, 5).until(element_present)
@@ -47,13 +47,15 @@ def fb_login (browser: webdriver.Chrome, config: dict):
     time.sleep(1)
     submit_element = browser.find_element_by_id('loginbutton')
     submit_element.click()
+
 def is_fb_logged_in (browser: webdriver.Chrome):
     """ Tries to locate the requests div, if it is found, then we're authenticated successfully """
     try:
-        browser.find_element_by_id('member_requests_pagelet')
+        browser.find_element_by_xpath ("//*[text()[contains(., 'Manage group')]]")
         return True
     except:
         return False
+
 def scroll_to_bottom (browser: webdriver.Chrome):
     SCROLL_PAUSE_TIME = 0.5
     # Get scroll height
@@ -70,29 +72,35 @@ def scroll_to_bottom (browser: webdriver.Chrome):
         if new_height == last_height:
             break
         last_height = new_height
+
 def view_requests (browser: webdriver.Chrome, config: dict):
     """ Returns the pending requests; ignores requests that have pending answers; config["group_url"] must be set """
+    time.sleep (1)
     browser.get(config["group_url"]) # load the group url in the browser
-    element_present = EC.presence_of_element_located((By.ID, 'member_requests_pagelet'))
-    WebDriverWait(browser, 5).until(element_present)
     time.sleep (1)
     
+    element_present = EC.presence_of_element_located((By.XPATH, "//div[@role = 'main']"))
+    WebDriverWait(browser, 8).until(element_present)
+    time.sleep (1)
+
+    #print ('got required element')
+
     scroll_to_bottom (browser) # ensure we get to all requests
 
     requests = list ()
-   
-    reqs_parent = browser.find_element_by_id('member_requests_pagelet') # find the requests container
     # the list of requests
-    reqs_list = reqs_parent.find_elements_by_xpath (".//ul[contains(@class, 'uiList')]/child::li/div[contains(@class, 'clearfix')]//div[contains(@class, '_42ef')]")
-    
+    reqs_list = browser.find_elements_by_xpath ("//div[@role = 'main']/div/div[3]/*")#".//ul[contains(@class, 'uiList')]/child::li/div[contains(@class, 'clearfix')]//div[contains(@class, '_42ef')]")
+    #print (len(reqs_list))
+
     for element in reqs_list:
-        name_element = element.find_element_by_xpath (".//a[contains(@class, '_z_3')]") # name of the person who has requested
-        approve_button = element.find_element_by_name ("approve") # the approve button
-        decline_button = element.find_element_by_name ("decline") # the decline button
-        anchor = element.find_element_by_xpath (".//div[contains(@class, '_50f8')]") # element, when scrolled to makes the entire request visible
+        name_element = element.find_elements_by_xpath (".//a[contains(@href,'/groups')]")[1] # name of the person who has requested
+        approve_button = element.find_element_by_xpath (".//span[text()[contains(., 'Approve')]]") # the approve button
+        decline_button = element.find_element_by_xpath (".//span[text()[contains(., 'Decline')]]") # the decline button
+        anchor = approve_button#element.find_element_by_xpath (".//div[contains(@class, '_50f8')]") # element, when scrolled to makes the entire request visible
+        
         try:
-            ques = element.find_element_by_xpath (".//div[contains(text(), 'technology.ministry@')]") # the relevant question; TODO: put into config.json
-            ans = ques.find_element_by_xpath ("./following-sibling::text").get_attribute("innerHTML") # answer to the question; innerHTML returns the text
+            ques = element.find_element_by_xpath (".//*[contains(text(), 'Send an email from')]") # the relevant question; TODO: put into config.json
+            ans = ques.find_element_by_xpath ("./following-sibling::*").get_attribute("innerText") # answer to the question; innerText returns the text
         except Exception as err: # ignore this request if this answer is not present, as it might still be loading
             ans = None 
         # compile all this info
@@ -103,6 +111,7 @@ def view_requests (browser: webdriver.Chrome, config: dict):
             "approve": approve_button,
             "decline": decline_button
             }
+        #print (obj)
         requests.append (obj)
     return requests
 
@@ -117,7 +126,6 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
         validate : lambda
             Function to validate the name & answer of the request, return True or False
     """
-    browser.get(config["group_url"])
     if not is_fb_logged_in (browser): # log in if not already
         print ("[FB] not logged in, logging in...") 
         fb_login (browser, config)
@@ -125,7 +133,7 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
    
     print (f"[FB] got {len(reqs)} requests")
 
-    for req in reqs:
+    for req in reqs[:20]: # at most accept 20 requests at a time
         name = req["name"]
         
         ActionChains(browser).move_to_element(req["anchor"]).perform() # make approve button visible

@@ -7,9 +7,11 @@ Puts together the 'FB automation' & 'email verification' modules and runs the co
 import json
 import time
 import signal
+import traceback 
 from sys import argv
 from fb_automation import create_browser, handle_requests
 from verification import Verifier
+
 
 def load_json (filename: str):
     """ loads a JSON stored at given file """
@@ -39,6 +41,7 @@ while True:
         handle_requests (browser, config["fb"], lambda name, answer : verifier.validate(name, answer))
     except Exception as error:
         print (f"exception in cycle: {error}")
+        traceback.print_exc()
 
     time.sleep (1*60 + 30) # wait a few minutes before restarting the cycle
 

@@ -38,7 +38,7 @@ def read_email (service, mID: str):
     service.users().messages().modify(userId='me', id=mID, body={"removeLabelIds": ['UNREAD']}).execute()
 def gmail_fetch (service, q: str):
     """ Fetch all emails fitting the query """
-    results = service.users().messages().list(userId='me', q=q).execute()
+    results = service.users().messages().list(userId='me', q=q, includeSpamTrash=True).execute()
     messageIDs = results.get('messages', [])
 
     messages = []
