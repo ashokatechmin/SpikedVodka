@@ -93,7 +93,11 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     #print (len(reqs_list))
 
     for element in reqs_list:
-        name_element = element.find_elements_by_xpath (".//a[contains(@href,'/groups')]")[1] # name of the person who has requested
+        name_element = element.find_elements_by_xpath (".//a[contains(@href,'/groups')]") # name of the person who has requested
+        if len(name_element) > 1:
+            name_element = name_element[1]
+        else:
+            continue
         approve_button = element.find_element_by_xpath (".//span[text()[contains(., 'Approve')]]") # the approve button
         decline_button = element.find_element_by_xpath (".//span[text()[contains(., 'Decline')]]") # the decline button
         anchor = approve_button#element.find_element_by_xpath (".//div[contains(@class, '_50f8')]") # element, when scrolled to makes the entire request visible
