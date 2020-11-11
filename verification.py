@@ -7,10 +7,8 @@ import json
 import time
 import re
 import csv
-from fsset import FSSet
 from aes import encrypt, decrypt
-from gmail_utils import get_gmail_service, gmail_fetch, extract_relevant, extract_name_email, send_reply, read_email
-
+from gmail_utils import get_gmail_service, gmail_fetch, extract_relevant, extract_name_email, send_reply, read_email, send_email
 
 def read_column_of_csv (file, column):
     with open (file) as csv_file:
@@ -29,10 +27,11 @@ class Verifier:
     """
     
     def __init__ (self, config: dict):
-        self.data = FSSet(config["datafile"]) # load the set of emails already accepted
         self.encryption_key = config["encryption_key"] # key used to sign the codes
         self.subject_q = config["email_subject"].lower () # the subject that the emails should have
+        self.subject_accept = config["accepted_email_subject"]
         self.email_regex = re.compile(config["valid_email_regex"]) # regex to validate an email address
+        self.responses = config['responses']
 
         if "valid_email_list" in config:
             opts = config["valid_email_list"]
@@ -42,7 +41,6 @@ class Verifier:
         self.last_fetch = None # when was the last fetch
 
         self.service = get_gmail_service (config["client_secret"], config["access_token"]) # gmail service
-        #self.test_email_verification ()
     
     def fetch (self):
         """ Fetch & respond to valid emails """
@@ -57,34 +55,38 @@ class Verifier:
                 continue 
 
             name, email = extract_name_email (message['from']) # extract the email from the RF-2822 format (name <email@mail.com>)
-            txt = f"Hello {name},\n\n" # construct response text
 
             if not self.is_valid_email (email): # if the email is not valid, respond accordingly
                 print (email + ', invalid address')
-                
-                txt += "Sorry, only Ashoka undergraduates can join the FB group.\n"
-                txt += "If you think this is a mistake, please reply to this email describing the issue.\n"
-            elif email in self.data: # if the email has already been validated, its a duplicate request
+                txt = self.responses['invalid_email']
+            elif self.has_sent_acceptance_email(email): # if the email has already been validated, its a duplicate request
                 print (email + ', got duplicate email')
-                
-                txt += "Your email has already been used to sign into the FB group.\n"
-                txt += "If you think this is a mistake, please reply to this email describing the issue.\n"
+                txt = self.responses['duplicate_email']
             else: # all good, otherwise
                 print (email + ' requested to join, sending code')
                 
                 code = encrypt (email, self.encryption_key)
-                txt += f"Here is your code:\n\n{code}\n\n"
-                txt += "Please copy and paste the entire code at the join prompt on Facebook."
-            
-            txt += "\n\nWarm Regards,\nMesscat"
+                txt: str = self.responses['valid_email']
+                txt = txt.replace('[code]', code)
 
-            # TODO: put the response text in the config file
+            txt = (self.responses.get('wrapper') or '[content]').replace('[content]', txt)
+            txt = txt.replace('[name]', name)
             
             read_email (self.service, message['id']) # mark the email read
             send_reply (self.service, txt, message) # reply
-    def is_valid_email (self, email):
-        """ Check if the email is valid"""
+    def has_sent_acceptance_email (self, email: str):
+        m = gmail_fetch (self.service, f'is:sent to:{email} subject:{self.subject_accept.replace (" ", "+")}') 
+        return len(m) > 0
+    def send_acceptance_email (self, email: str, fbName: str):
+        subject = self.subject_accept
+        text = self.responses['accept_email']
+        text = self.responses['wrapper'].replace('[content]', text)
+        text = text.replace('[name]', fbName)
         
+        send_email(self.service, email, subject, text)
+
+    def is_valid_email (self, email):
+        """ Check if the email is valid"""    
         return self.email_regex.match (email.lower()) != None or (email.lower() in self.valid_emails_list)
 
     def validate (self, name: str, answer: str):
@@ -101,11 +103,11 @@ class Verifier:
         if not self.is_valid_email (code): # if the code is not a valid email, fail
             print (f"{name} email validation failed for '{code}'") 
             return False
-        if code in self.data: # if the code has already been used for validation, fail
+        if self.has_sent_acceptance_email(code): # if the code has already been used for validation, fail
             print (f"{name} sent duplicate code: '{code}'") 
             return False
-        self.data.add (code) # add this to our set of validated emails
         print (f"{name} successful authentication: '{code}'")
+        self.send_acceptance_email(code, name)
         return True
 def test_email_verification (verifier):
     """ Small unit test to verify the email regex works for Ashoka """

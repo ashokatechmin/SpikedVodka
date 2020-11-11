@@ -72,6 +72,16 @@ def send_reply (service, text: str, meta: dict):
     raw_message = base64.urlsafe_b64encode(message.as_string().encode("utf-8")).decode('utf-8')
     # mention thread Id to save as reply
     service.users().messages().send(userId='me', body={'raw': raw_message, 'thread_id': meta["thread_id"]}).execute()
+def send_email (service, address: str, subject: str, text: str):
+    """  Sends to an email with the given text to the specified address """
+    message = MIMEText (text)
+    message['to'] = address
+    message['from'] = 'me'
+    message['subject'] = subject
+    # encode as url safe base64
+    raw_message = base64.urlsafe_b64encode(message.as_string().encode("utf-8")).decode('utf-8')
+    # mention thread Id to save as reply
+    service.users().messages().send(userId='me', body={'raw': raw_message}).execute()
 
 def extract_relevant (msg):
     """ Extracts relevant (to the app) headers & info from a GMail message """

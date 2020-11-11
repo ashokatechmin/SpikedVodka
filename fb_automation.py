@@ -57,7 +57,7 @@ def is_fb_logged_in (browser: webdriver.Chrome):
         return False
 
 def scroll_to_bottom (browser: webdriver.Chrome):
-    SCROLL_PAUSE_TIME = 0.5
+    SCROLL_PAUSE_TIME = 2.5
     # Get scroll height
     last_height = browser.execute_script("return document.body.scrollHeight")
     while True:
@@ -77,8 +77,8 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     """ Returns the pending requests; ignores requests that have pending answers; config["group_url"] must be set """
     time.sleep (1)
     browser.get(config["group_url"]) # load the group url in the browser
-    time.sleep (1)
-    
+    time.sleep (3)
+
     element_present = EC.presence_of_element_located((By.XPATH, "//div[@role = 'main']"))
     WebDriverWait(browser, 8).until(element_present)
     time.sleep (1)

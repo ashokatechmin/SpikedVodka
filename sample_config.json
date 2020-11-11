@@ -9,8 +9,15 @@
         "file": "./config/alumni_emails.csv",
         "column": "Email"
     },
+    "responses": {
+        "wrapper": "Hello [name],\n\n[content]\n\nWarm Regards,\nMesscat",
+        "invalid_email": "Sorry, only Ashoka undergraduates can join the FB group.\nIf you think this is a mistake, please reply to this email describing the issue.\n",
+        "duplicate_email": "Your email has already been used to sign into the FB group.\nIf you think this is a mistake, please reply to this email describing the issue.\n",
+        "valid_email": "Here is your code:\n\n[code]\n\nPlease copy and paste the entire code at the join prompt on Facebook.",
+        "accept_email": "This is a confirmation email, confirming that you've joined the Ashoka Undergraduates Facebook group. You can safely ignore this email."
+    },
     "email_subject": "Join FB Group",
-    "datafile": "./data/emails_joined.csv",
+    "accepted_email_subject": "Accepted to FB group",
     "client_secret": "./data/client_secret.json",
     "access_token": "./data/access_token.pickle",
     "encryption_key": "superSecureEncryptionKey"
