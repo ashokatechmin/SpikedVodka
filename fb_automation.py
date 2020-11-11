@@ -137,7 +137,7 @@ def handle_requests (browser: webdriver.Chrome, config: dict, validate):
    
     print (f"[FB] got {len(reqs)} requests")
 
-    for req in reqs[:20]: # at most accept 20 requests at a time
+    for req in reqs:
         name = req["name"]
         
         ActionChains(browser).move_to_element(req["anchor"]).perform() # make approve button visible
