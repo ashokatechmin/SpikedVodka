@@ -57,7 +57,7 @@ def is_fb_logged_in (browser: webdriver.Chrome):
         return False
 
 def scroll_to_bottom (browser: webdriver.Chrome):
-    SCROLL_PAUSE_TIME = 2.5
+    SCROLL_PAUSE_TIME = 4
     # Get scroll height
     last_height = browser.execute_script("return document.body.scrollHeight")
     while True:
