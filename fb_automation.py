@@ -90,13 +90,14 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     requests = list ()
     # the list of requests
     reqs_list = browser.find_elements_by_xpath ("//div[@role = 'main']/div/div[3]/*")#".//ul[contains(@class, 'uiList')]/child::li/div[contains(@class, 'clearfix')]//div[contains(@class, '_42ef')]")
-    #print (len(reqs_list))
+    print (len(reqs_list))
 
     for element in reqs_list:
-        name_element = element.find_elements_by_xpath (".//a[contains(@href,'/groups')]") # name of the person who has requested
+        name_element = element.find_elements_by_xpath (".//a[@role='link']") # name of the person who has requested
         if len(name_element) > 1:
             name_element = name_element[1]
         else:
+            print(len(name_element))
             continue
         approve_button = element.find_element_by_xpath (".//span[text()[contains(., 'Approve')]]") # the approve button
         decline_button = element.find_element_by_xpath (".//span[text()[contains(., 'Decline')]]") # the decline button
