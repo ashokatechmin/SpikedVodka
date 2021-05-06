@@ -83,6 +83,12 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     WebDriverWait(browser, 8).until(element_present)
     time.sleep (1)
 
+    if not is_fb_logged_in(browser):
+        fb_login(browser, config)
+        time.sleep (1)
+        browser.get(config["group_url"]) # load the group url in the browser
+        time.sleep (3)
+
     #print ('got required element')
 
     scroll_to_bottom (browser) # ensure we get to all requests
@@ -90,7 +96,6 @@ def view_requests (browser: webdriver.Chrome, config: dict):
     requests = list ()
     # the list of requests
     reqs_list = browser.find_elements_by_xpath ("//div[@role = 'main']/div/div[3]/*")#".//ul[contains(@class, 'uiList')]/child::li/div[contains(@class, 'clearfix')]//div[contains(@class, '_42ef')]")
-    print (len(reqs_list))
 
     for element in reqs_list:
         name_element = element.find_elements_by_xpath (".//a[@role='link']") # name of the person who has requested

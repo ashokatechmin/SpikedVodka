@@ -10,12 +10,14 @@ from email.mime.text import MIMEText
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
 def get_gmail_service (client_secret_file: str, access_token_file: str):
     """ Authenticate with GMail. Most of the code from https://developers.google.com/gmail/api/quickstart/python """
 
     SCOPES = ['https://mail.google.com/']
     creds = None
+    
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
