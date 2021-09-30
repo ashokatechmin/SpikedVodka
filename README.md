@@ -4,7 +4,7 @@ If you're not from Ashoka University, the first two sections and the name of the
 
 ## The Problem
 
-The Ashoka University UG Facebook group had some uninvited guests that could jeopardize the safety of the group. Moreover, amnually verifying whether a person is from Ashoka university by cross-checking every request to the group with the LMS directory is cumbersome & unreliable. A system is required to verify that the person requesting to join the FB group is really an Ashokan. 
+The Ashoka University UG Facebook group had some uninvited guests that could jeopardize the safety of the group. Moreover, annually verifying whether a person is from Ashoka university by cross-checking every request to the group with the LMS directory is cumbersome & unreliable. A system is required to verify that the person requesting to join the FB group is really an Ashokan. 
 
 ## The solution
 
